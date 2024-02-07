@@ -56,6 +56,11 @@ MQTT_BROKER_CA = "AmazonRootCA1.pem"
 MQTT_LED_TOPIC = "picow/led"
 MQTT_ENVIROMENTAL_TOPIC = "device/88/data"
 
+#print("Local time before synchronization：%s" % str(time.localtime()))
+# update the current time on the board using NTP
+ntptime.settime()
+#print("Local time after synchronization：%s" % str(time.localtime()))
+
 
 # function that reads PEM file and return byte array of data
 def read_pem(file):
@@ -90,8 +95,7 @@ def on_mqtt_msg(topic, msg):
 def publish_mqtt_button_msg():
     topic_str = MQTT_ENVIROMENTAL_TOPIC
 
-    msg_str_dict = {"time_unix": int(time.time()), "mac_address": mac, "proximity": proximity,
-                    "ambient_lux": ambient_lux}
+    msg_str_dict = {"time_unix": time.time(), "mac_address": mac, "proximity": proximity, "ambient_lux": ambient_lux}
 
     msg_str = json.dumps(msg_str_dict)
     print(f"TX: {topic_str}\n\t{msg_str}")
@@ -125,9 +129,6 @@ mqtt_client = MQTTClient(
         "cadata": ca,
     },
 )
-
-# update the current time on the board using NTP
-ntptime.settime()
 
 print(f"Connecting to MQTT broker: {MQTT_BROKER}")
 
