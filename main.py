@@ -5,12 +5,25 @@ import json
 
 import secrets
 import network
+import binascii
+import ubinascii
 
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 
+mac = ubinascii.hexlify(network.WLAN().config('mac'), ':').decode()
+
+## Scan Network
+print("Scanning WiFi Network...")
+networks = wlan.scan()  # list with tupples with 6 fields ssid, bssid, channel, RSSI, security, hidden
+i = 0
+networks.sort(key=lambda x: x[3], reverse=True)  # sorted on RSSI (3)
+for w in networks:
+    i += 1
+    print(i, w[0].decode(), binascii.hexlify(w[1]).decode(), w[2], w[3], w[4], w[5])
+
 print("Connecting to WiFi Network...")
-wlan.connect(secrets.WIFI_SSID,secrets.WIFI_PASSWORD)
+wlan.connect(secrets.WIFI_SSID, secrets.WIFI_PASSWORD)
 while not wlan.isconnected():
     pass
 
@@ -41,7 +54,7 @@ MQTT_BROKER_CA = "AmazonRootCA1.pem"
 
 # MQTT topic constants
 MQTT_LED_TOPIC = "picow/led"
-MQTT_ENVIROMENTAL_TOPIC = "picow/envirosensor"
+MQTT_ENVIROMENTAL_TOPIC = "device/88/data"
 
 
 # function that reads PEM file and return byte array of data
@@ -52,7 +65,8 @@ def read_pem(file):
         base64_text = "".join(split_text[1:-1])
 
         return ubinascii.a2b_base64(base64_text)
-    
+
+
 # callback function to handle received MQTT messages
 def on_mqtt_msg(topic, msg):
     # convert topic and message from bytes to string
@@ -69,17 +83,19 @@ def on_mqtt_msg(topic, msg):
             led.off()
         elif msg_str is "toggle":
             led.toggle()
-    
+
+
 # callback function to handle changes in button state
 # publishes "released" or "pressed" message
 def publish_mqtt_button_msg():
     topic_str = MQTT_ENVIROMENTAL_TOPIC
-    msg_str_dict = {"temperature": temperature,"pressure": pressure,"humidity": humidity,"gas": gas}
+
+    msg_str_dict = {"time_unix": int(time.time()), "mac_address": mac, "proximity": proximity,
+                    "ambient_lux": ambient_lux}
 
     msg_str = json.dumps(msg_str_dict)
     print(f"TX: {topic_str}\n\t{msg_str}")
     mqtt_client.publish(topic_str, msg_str)
-    
 
 
 # callback function to periodically send MQTT ping messages
@@ -88,7 +104,6 @@ def send_mqtt_ping():
     print("TX: ping")
     mqtt_client.ping()
 
-led = Pin("LED", Pin.OUT)
 
 # read the data in the private key, public certificate, and
 # root CA files
@@ -125,15 +140,12 @@ mqtt_client.subscribe(MQTT_LED_TOPIC)
 print(f"Connected to MQTT broker: {MQTT_BROKER}")
 
 # register callback function to handle changes in button state
-#button.irq(publish_mqtt_button_msg, Pin.IRQ_FALLING | Pin.IRQ_RISING)
-
-# turn on-board LED on
-led.on()
+# button.irq(publish_mqtt_button_msg, Pin.IRQ_FALLING | Pin.IRQ_RISING)
 
 # create timer for periodic MQTT ping messages for keep-alive
-mqtt_ping_timer = Timer(
-    mode=Timer.PERIODIC, period=mqtt_client.keepalive * 1000, callback=send_mqtt_ping
-)
+mqtt_ping_timer = Timer(1,
+                        mode=Timer.PERIODIC, period=mqtt_client.keepalive * 1000, callback=send_mqtt_ping
+                        )
 
 #############################
 #  Sensor+Display Setup 	#
@@ -141,70 +153,27 @@ mqtt_ping_timer = Timer(
 import time
 import machine
 import utime
-import _thread
-from gfx_pack import GfxPack
-from breakout_bme68x import BreakoutBME68X, STATUS_HEATER_STABLE
+import time
+from machine import Pin, I2C
+import vcnl4020
 
-# Settings
-lower_temp_bound = 30
-upper_temp_bound = 40
-use_bme68x_breakout = True
-
-sensor_temp = machine.ADC(4)
-conversion_factor = 3.3 / (65535)  # used for calculating a temperature from the raw sensor reading
-
-gp = GfxPack()
-gp.set_backlight(4, 0, 0)  # turn the RGB backlight off
-display = gp.display
-display.set_backlight(0.2)  # set the white to a low value
-
-if use_bme68x_breakout:
-    bmp = BreakoutBME68X(gp.i2c)
-
-display.set_pen(0)
-display.clear()
-display.set_font("bitmap14_outline")
+i2c = I2C(sda=Pin(21), scl=Pin(22))  # Correct I2C pins for RP2040
+vcn = vcnl4020.VCNL4020(i2c)
+vcn.proximity_rate = vcnl4020.SAMPLERATE_250
 
 while True:
-    # Clear display
-    display.set_pen(0)
-    display.clear()
+    proximity = vcn.proximity
+    ambient_lux = vcn.ambient
+    print(f"Proximity: {proximity}")
+    print(f"Ambient light: {ambient_lux} lux")
+    print()
+    time.sleep(1.0)
 
-    display.set_pen(15)
-    #display.text("GFXPack Temp demo", 0, 0, scale=0.1)
-
-    if use_bme68x_breakout:
-        temperature, pressure, humidity, gas, status, _, _ = bmp.read()
-        display.text("Gas: {:0.2f}kOhms".format(gas/1000), 0, 0, scale=0.2)
-        display.text("Temp: {:0.2f}c".format(temperature), 0, 20, scale=0.2)
-        display.text("Press: {:0.2f}hPa".format(pressure/100), 0, 35, scale=0.2)
-        display.text("Humid: {:0.2f}%".format(humidity), 0, 50, scale=0.2)
-
-        heater = "Stable" if status & STATUS_HEATER_STABLE else "Unstable"
-        print("{:0.2f}c, {:0.2f}Pa, {:0.2f}%, {:0.2f} Ohms, Heater: {}".format(
-            temperature, pressure, humidity, gas, heater))
-
-    else:
-        reading = sensor_temp.read_u16() * conversion_factor
-        temperature = 27 - (reading - 0.706) / 0.001721
-        display.text("Temperature", 25, 15, scale=0.2)
-        display.text("{:0.2f}c".format(temperature), 25, 30, scale=2)
-
-    if temperature < lower_temp_bound:
-        r = 255
-        b = 0
-    elif temperature > upper_temp_bound:
-        r = 255
-        b = 0
-    else:
-        r = (temperature - lower_temp_bound) / (upper_temp_bound - lower_temp_bound) * 255
-        b = 255 - ((temperature - lower_temp_bound) / (upper_temp_bound - lower_temp_bound) * 255)
-
-    gp.set_backlight(r, 75, b)
-    display.update()
     publish_mqtt_button_msg()
     mqtt_client.check_msg()
-    
-    time.sleep(10)
-    
-     
+
+    time.sleep(50)
+
+
+
+
