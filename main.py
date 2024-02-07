@@ -1,18 +1,57 @@
 #################
 #  WiFi Setup	#
 #################
-import json
-
-import secrets
 import network
+import time
+from time import sleep
+import binascii
+import ubinascii
+import secrets
+
+import rp2
+
+rp2.country('GB')
 
 wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
+# wlan = WLAN(mode=WLAN.STA)
 
-print("Connecting to WiFi Network...")
-wlan.connect(secrets.WIFI_SSID,secrets.WIFI_PASSWORD)
-while not wlan.isconnected():
-    pass
+print(wlan)
+wlan.active(True)
+print(wlan)
+
+# wlan = WLAN(mode=WLAN.STA)
+wlan.config(pm=0xa11140)
+mac = ubinascii.hexlify(network.WLAN().config('mac'), ':').decode()
+print(mac)
+print(wlan)
+
+## Scan Network
+print("Scanning WiFi Network...")
+networks = wlan.scan()  # list with tupples with 6 fields ssid, bssid, channel, RSSI, security, hidden
+i = 0
+networks.sort(key=lambda x: x[3], reverse=True)  # sorted on RSSI (3)
+for w in networks:
+    i += 1
+    print(i, w[0].decode(), binascii.hexlify(w[1]).decode(), w[2], w[3], w[4], w[5])
+
+
+def connect():
+    # Connect to WLAN
+    wlan.connect(secrets.WIFI_SSID, secrets.WIFI_PASSWORD)
+    while wlan.isconnected() == False:
+        print('Waiting for connection...')
+        sleep(1)
+    ip = wlan.ifconfig()[0]
+    print(f'Connected on {ip}')
+    return ip
+
+
+try:
+    ip = connect()
+except KeyboardInterrupt:
+    machine.reset()
+
+print(wlan.isconnected())
 
 print(wlan.isconnected())
 print(wlan.ifconfig())
@@ -24,7 +63,7 @@ import network
 import ssl
 import time
 import ubinascii
-
+import json
 from machine import Pin, Timer
 
 import ntptime
@@ -40,8 +79,8 @@ MQTT_BROKER = secrets.MQTT_BROKER
 MQTT_BROKER_CA = "AmazonRootCA1.pem"
 
 # MQTT topic constants
-MQTT_LED_TOPIC = "picow/led"
-MQTT_ENVIROMENTAL_TOPIC = "picow/envirosensor"
+MQTT_LED_TOPIC = "device/16/data"
+MQTT_ENVIROMENTAL_TOPIC = "device/25/data"
 
 
 # function that reads PEM file and return byte array of data
@@ -52,7 +91,8 @@ def read_pem(file):
         base64_text = "".join(split_text[1:-1])
 
         return ubinascii.a2b_base64(base64_text)
-    
+
+
 # callback function to handle received MQTT messages
 def on_mqtt_msg(topic, msg):
     # convert topic and message from bytes to string
@@ -69,17 +109,22 @@ def on_mqtt_msg(topic, msg):
             led.off()
         elif msg_str is "toggle":
             led.toggle()
-    
+
+
 # callback function to handle changes in button state
 # publishes "released" or "pressed" message
 def publish_mqtt_button_msg():
     topic_str = MQTT_ENVIROMENTAL_TOPIC
-    msg_str_dict = {"temperature": temperature,"pressure": pressure,"humidity": humidity,"gas": gas}
+
+    # Tiny-future-proof of moving onto epoch of 2000,
+    # instead of 1970, also compatibility with other already preset epochs
+    time_epoch_data = (int(time.time()) - 946684800)
+    msg_str_dict = {"time_unix": time_epoch_data, ",": mac, "temperature": temperature, "pressure": pressure,
+                    "humidity": humidity, "gas": gas}
 
     msg_str = json.dumps(msg_str_dict)
     print(f"TX: {topic_str}\n\t{msg_str}")
     mqtt_client.publish(topic_str, msg_str)
-    
 
 
 # callback function to periodically send MQTT ping messages
@@ -87,6 +132,7 @@ def publish_mqtt_button_msg():
 def send_mqtt_ping():
     print("TX: ping")
     mqtt_client.ping()
+
 
 led = Pin("LED", Pin.OUT)
 
@@ -120,12 +166,10 @@ print(f"Connecting to MQTT broker: {MQTT_BROKER}")
 # subscribe to LED topic
 mqtt_client.set_callback(on_mqtt_msg)
 mqtt_client.connect()
-mqtt_client.subscribe(MQTT_LED_TOPIC)
-
 print(f"Connected to MQTT broker: {MQTT_BROKER}")
 
 # register callback function to handle changes in button state
-#button.irq(publish_mqtt_button_msg, Pin.IRQ_FALLING | Pin.IRQ_RISING)
+# button.irq(publish_mqtt_button_msg, Pin.IRQ_FALLING | Pin.IRQ_RISING)
 
 # turn on-board LED on
 led.on()
@@ -171,13 +215,13 @@ while True:
     display.clear()
 
     display.set_pen(15)
-    #display.text("GFXPack Temp demo", 0, 0, scale=0.1)
+    # display.text("GFXPack Temp demo", 0, 0, scale=0.1)
 
     if use_bme68x_breakout:
         temperature, pressure, humidity, gas, status, _, _ = bmp.read()
-        display.text("Gas: {:0.2f}kOhms".format(gas/1000), 0, 0, scale=0.2)
+        display.text("Gas: {:0.2f}kOhms".format(gas / 1000), 0, 0, scale=0.2)
         display.text("Temp: {:0.2f}c".format(temperature), 0, 20, scale=0.2)
-        display.text("Press: {:0.2f}hPa".format(pressure/100), 0, 35, scale=0.2)
+        display.text("Press: {:0.2f}hPa".format(pressure / 100), 0, 35, scale=0.2)
         display.text("Humid: {:0.2f}%".format(humidity), 0, 50, scale=0.2)
 
         heater = "Stable" if status & STATUS_HEATER_STABLE else "Unstable"
@@ -204,7 +248,7 @@ while True:
     display.update()
     publish_mqtt_button_msg()
     mqtt_client.check_msg()
-    
+
     time.sleep(10)
-    
-     
+
+
