@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="df05bcbb-6451-45e7-97cd-f549b3fa513b" name="Changes" comment="Working implementation of esp32 and MQTT data to database.">
+    <list default="true" id="df05bcbb-6451-45e7-97cd-f549b3fa513b" name="Changes" comment="Fixed the typo error of the mac address.">
+      <change afterPath="$PROJECT_DIR$/lib_custom/adafruit_scd4x.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aws_lambda_code/lambda_function.py" beforeDir="false" afterPath="$PROJECT_DIR$/aws_lambda_code/lambda_function.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -49,27 +52,27 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2c1EBxI9W53a6zRTR4DucyIKYCL" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -86,6 +89,7 @@
       <option name="presentableId" value="Default" />
       <updated>1707270552567</updated>
       <workItem from="1707270553742" duration="1085000" />
+      <workItem from="1707323207908" duration="1795000" />
     </task>
     <task id="LOCAL−00001" summary="Working implementation of esp32 and MQTT data to database.">
       <option name="closed" value="true" />
@@ -94,7 +98,14 @@
       <option name="presentableId" value="LOCAL−00001" />
       <updated>1707270767281</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL−00002" summary="Fixed the typo error of the mac address.">
+      <option name="closed" value="true" />
+      <created>1707273817021</created>
+      <option name="number" value="LOCAL−00002" />
+      <option name="presentableId" value="LOCAL−00002" />
+      <updated>1707273817021</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -105,19 +116,7 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="origin/main" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
@@ -125,6 +124,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Working implementation of esp32 and MQTT data to database." />
-    <option name="LAST_COMMIT_MESSAGE" value="Working implementation of esp32 and MQTT data to database." />
+    <MESSAGE value="NTP and system-time printing, moved the ntp fetching up the startup." />
+    <MESSAGE value="Fixed the typo error of the mac address." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed the typo error of the mac address." />
   </component>
 </project>

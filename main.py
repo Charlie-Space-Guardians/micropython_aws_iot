@@ -120,7 +120,7 @@ def publish_mqtt_button_msg():
     # instead of 1970, also compatibility with other already preset epochs
     time_epoch_data = (int(time.time()) - 946684800)
     msg_str_dict = {"time_unix": time_epoch_data, "mac_address": mac, "temperature": temperature, "pressure": pressure,
-                    "humidity": humidity, "gas": gas}
+                    "humidity": humidity, "gas": gas, "co2": co2}
 
     msg_str = json.dumps(msg_str_dict)
     print(f"TX: {topic_str}\n\t{msg_str}")
@@ -188,6 +188,7 @@ import utime
 import _thread
 from gfx_pack import GfxPack
 from breakout_bme68x import BreakoutBME68X, STATUS_HEATER_STABLE
+from adafruit_scd4x import SCD4X
 
 # Settings
 lower_temp_bound = 30
@@ -205,9 +206,19 @@ display.set_backlight(0.2)  # set the white to a low value
 if use_bme68x_breakout:
     bmp = BreakoutBME68X(gp.i2c)
 
+i2c0 = machine.I2C(0, sda=machine.Pin(4), scl=machine.Pin(5), freq=10000)
+print("i2c0 scan result:", i2c0.scan())
+# i2c = gp.I2C(scl = 4, sda = 5)  # uses board.SCL and board.SDA
+# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
+scd4x = SCD4X(i2c0)
+
+# Start Measurementr of CO2 ppm
+scd4x.start_periodic_measurement()
+time.sleep(5)
+
 display.set_pen(0)
 display.clear()
-display.set_font("bitmap14_outline")
+display.set_font("bitmap8")
 
 while True:
     # Clear display
@@ -217,12 +228,18 @@ while True:
     display.set_pen(15)
     # display.text("GFXPack Temp demo", 0, 0, scale=0.1)
 
+    co2 = scd4x.co2
+    print("CO2: %d ppm" % co2)
+    print("Temperature: %0.1f *C" % scd4x.temperature)
+    print("Humidity: %0.1f %%" % scd4x.relative_humidity)
+
     if use_bme68x_breakout:
         temperature, pressure, humidity, gas, status, _, _ = bmp.read()
         display.text("Gas: {:0.2f}kOhms".format(gas / 1000), 0, 0, scale=0.2)
-        display.text("Temp: {:0.2f}c".format(temperature), 0, 20, scale=0.2)
-        display.text("Press: {:0.2f}hPa".format(pressure / 100), 0, 35, scale=0.2)
-        display.text("Humid: {:0.2f}%".format(humidity), 0, 50, scale=0.2)
+        display.text("Temp: {:0.2f}c".format(temperature), 0, 10, scale=0.2)
+        display.text("Press: {:0.2f}hPa".format(pressure / 100), 0, 20, scale=0.2)
+        display.text("Humid: {:0.2f}%".format(humidity), 0, 30, scale=0.2)
+        display.text("CO2: {:0.2f}ppm".format(co2), 0, 40, scale=0.2)
 
         heater = "Stable" if status & STATUS_HEATER_STABLE else "Unstable"
         print("{:0.2f}c, {:0.2f}Pa, {:0.2f}%, {:0.2f} Ohms, Heater: {}".format(
@@ -249,6 +266,6 @@ while True:
     publish_mqtt_button_msg()
     mqtt_client.check_msg()
 
-    time.sleep(10)
+    time.sleep(45)
 
 
