@@ -119,7 +119,7 @@ def publish_mqtt_button_msg():
     # Tiny-future-proof of moving onto epoch of 2000,
     # instead of 1970, also compatibility with other already preset epochs
     time_epoch_data = (int(time.time()) - 946684800)
-    msg_str_dict = {"time_unix": time_epoch_data, ",": mac, "temperature": temperature, "pressure": pressure,
+    msg_str_dict = {"time_unix": time_epoch_data, "mac_address": mac, "temperature": temperature, "pressure": pressure,
                     "humidity": humidity, "gas": gas}
 
     msg_str = json.dumps(msg_str_dict)
