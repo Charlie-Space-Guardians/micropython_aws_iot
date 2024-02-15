@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="df05bcbb-6451-45e7-97cd-f549b3fa513b" name="Changes" comment="dd">
+    <list default="true" id="df05bcbb-6451-45e7-97cd-f549b3fa513b" name="Changes" comment="+Cleaned up the .3mf files.&#10;+Committed latest working prototype phase&#10;&#10;-Unimplemented the GfxPack display of the project because of it being unrequited feature.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Body1.3MF" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Body2.3MF" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,7 +106,14 @@
       <option name="presentableId" value="LOCAL−00002" />
       <updated>1707273817021</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL−00003" summary="+Cleaned up the .3mf files.&#10;+Committed latest working prototype phase&#10;&#10;-Unimplemented the GfxPack display of the project because of it being unrequited feature.">
+      <option name="closed" value="true" />
+      <created>1708010330794</created>
+      <option name="number" value="LOCAL−00003" />
+      <option name="presentableId" value="LOCAL−00003" />
+      <updated>1708010330794</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -126,6 +135,7 @@
     <MESSAGE value="NTP and system-time printing, moved the ntp fetching up the startup." />
     <MESSAGE value="Fixed the typo error of the mac address." />
     <MESSAGE value="dd" />
-    <option name="LAST_COMMIT_MESSAGE" value="dd" />
+    <MESSAGE value="+Cleaned up the .3mf files.&#10;+Committed latest working prototype phase&#10;&#10;-Unimplemented the GfxPack display of the project because of it being unrequited feature." />
+    <option name="LAST_COMMIT_MESSAGE" value="+Cleaned up the .3mf files.&#10;+Committed latest working prototype phase&#10;&#10;-Unimplemented the GfxPack display of the project because of it being unrequited feature." />
   </component>
 </project>
